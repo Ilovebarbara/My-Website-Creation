@@ -110,6 +110,7 @@ def user_logout(request):
 def dashboard(request):
     # Get user's posts
     user_posts = BlogPost.objects.filter(author=request.user).order_by('-created_at')
+    print("DEBUG: user_posts:", user_posts)  # Debug statement
     
     # Get total likes on user's posts
     total_likes = Like.objects.filter(post__author=request.user).count()
