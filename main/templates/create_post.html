@@ -2,8 +2,8 @@
 {% block content %}
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
+        <div class="col-md-10">
+            <div class="card shadow">
                 <div class="card-body">
                     <h2 class="card-title text-center mb-4">
                         {% if editing %}Edit Post{% else %}Create New Post{% endif %}
@@ -20,6 +20,15 @@
                             {% endif %}
                         </div>
                         <div class="mb-3">
+                            <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.category.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
                             <label for="{{ form.content.id_for_label }}" class="form-label">Content</label>
                             {{ form.content }}
                             {% if form.content.errors %}
@@ -27,16 +36,6 @@
                                 {{ form.content.errors.0 }}
                             </div>
                             {% endif %}
-                        </div>
-                        <div class="mb-3">
-                            <label for="category" class="form-label">Category</label>
-                            <select id="category" name="category" class="form-select" required>
-                                <option value="" disabled selected>Select a category</option>
-                                {% for category in categories %}
-                                <option value="{{ category.id }}">{{ category.name }}</option>
-                                {% endfor %}
-                                <option value="none">None of the Above</option>
-                            </select>
                         </div>
                         <div class="d-flex justify-content-between mt-4">
                             <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
@@ -72,16 +71,6 @@ document.addEventListener('DOMContentLoaded', function() {
     textarea.addEventListener('input', function() {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
-    });
-
-    const categorySelect = document.getElementById('category');
-
-    // Ensure a category is selected before form submission
-    form.addEventListener('submit', function(event) {
-        if (!categorySelect.value) {
-            event.preventDefault();
-            alert('Please select a category.');
-        }
     });
 });
 </script>
