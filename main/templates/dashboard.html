@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
+{% csrf_token %}
 <style>
     .profile-picture {
         border: 3px solid #4CAF50;
@@ -285,8 +287,13 @@
 </div>
 
 {% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize managers
+    const tutorialManager = new TutorialManager();
+    const projectManager = new ProjectManager();
+    
     let postToDelete = null;
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
 

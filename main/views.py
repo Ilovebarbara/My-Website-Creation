@@ -15,7 +15,12 @@ def home(request):
     categories = BlogCategory.objects.all()
     featured_posts = BlogPost.objects.filter(featured=True).order_by('-created_at')[:3]
     projects = Project.objects.filter(featured=True).order_by('-created_at')[:3]
-    tutorials = Tutorial.objects.filter(featured=True).order_by('-created_at')[:3]
+    
+    # Only show logged-in user's featured tutorials
+    if request.user.is_authenticated:
+        tutorials = Tutorial.objects.filter(featured=True, author=request.user).order_by('-created_at')[:3]
+    else:
+        tutorials = Tutorial.objects.none()
     return render(request, 'home.html', {
         'categories': categories,
         'featured_posts': featured_posts,
@@ -386,6 +391,9 @@ def delete_project(request, pk):
 @login_required
 @require_POST
 def delete_tutorial(request, pk):
-    tutorial = get_object_or_404(Tutorial, pk=pk, author=request.user)
-    tutorial.delete()
-    return JsonResponse({'status': 'success'})
+    try:
+        tutorial = get_object_or_404(Tutorial, pk=pk, author=request.user)
+        tutorial.delete()
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
