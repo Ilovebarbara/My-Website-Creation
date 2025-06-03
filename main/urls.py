@@ -16,10 +16,12 @@ urlpatterns = [
     path('post/create/', views.create_post, name='create_post'),
     path('post/edit/<int:pk>/', views.edit_post, name='edit_post'),
     path('post/delete/<int:pk>/', views.delete_post, name='delete_post'),
-    path('post/toggle-featured/<int:pk>/', views.toggle_featured, name='toggle_featured'),    path('post/like/', views.like_post, name='like_post'),
+    path('post/toggle-featured/<int:pk>/', views.toggle_featured, name='toggle_featured'),
+    path('post/like/', views.like_post, name='like_post'),
     path('post/comment/<int:pk>/', views.add_comment, name='add_comment'),
     path('profile/edit/', views.edit_profile, name='edit_profile'),
     path('profile/<str:username>/', views.profile_view, name='profile'),
     path('follow/', views.follow_toggle, name='follow_toggle'),
     path('notifications/', views.notifications, name='notifications'),
+    path('contact/', views.contact, name='contact'),  # Added contact URL
 ]
