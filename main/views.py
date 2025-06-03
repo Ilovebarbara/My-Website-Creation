@@ -186,7 +186,8 @@ def edit_post(request, pk):
 def delete_post(request, pk):
     post = get_object_or_404(BlogPost, pk=pk, author=request.user)
     post.delete()
-    return JsonResponse({'status': 'success'})
+    messages.success(request, 'Post deleted successfully!')
+    return redirect('dashboard')
 
 @login_required
 @require_POST
