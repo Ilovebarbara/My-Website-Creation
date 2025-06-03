@@ -37,6 +37,7 @@ class Project(models.Model):
     link = models.URLField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     featured = models.BooleanField(default=False)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='projects', null=True)  # Temporarily allow null
 
     def __str__(self):
         return self.title
@@ -51,9 +52,15 @@ class Tutorial(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
     difficulty_level = models.CharField(max_length=20, choices=DIFFICULTY_CHOICES, default='beginner')
-    author = models.ForeignKey(User, on_delete=models.CASCADE, null=True)  # Temporarily allow null
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tutorials')
     created_at = models.DateTimeField(auto_now_add=True)
     featured = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-created_at']
+        
+    def get_absolute_url(self):
+        return reverse('tutorial_detail', kwargs={'pk': self.pk})
 
     def __str__(self):
         return self.title

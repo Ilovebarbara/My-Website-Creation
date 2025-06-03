@@ -54,11 +54,17 @@ def blog_detail(request, slug):
     return render(request, 'blog_detail.html', {'post': post, 'comments': comments, 'form': form})
 
 def project_list(request):
-    projects = Project.objects.all().order_by('-created_at')
+    if request.user.is_authenticated:
+        projects = Project.objects.all().order_by('-created_at')
+    else:
+        projects = Project.objects.filter(featured=True).order_by('-created_at')
     return render(request, 'project_list.html', {'projects': projects})
 
 def tutorial_list(request):
-    tutorials = Tutorial.objects.all().order_by('-created_at')
+    if request.user.is_authenticated:
+        tutorials = Tutorial.objects.all().order_by('-created_at')
+    else:
+        tutorials = Tutorial.objects.filter(featured=True).order_by('-created_at')
     return render(request, 'tutorial_list.html', {'tutorials': tutorials})
 
 def search(request):
@@ -107,9 +113,10 @@ def user_logout(request):
 
 @login_required
 def dashboard(request):
-    # Get user's posts
+    # Get user's content
     user_posts = BlogPost.objects.filter(author=request.user).order_by('-created_at')
-    print("DEBUG: user_posts:", user_posts)  # Debug statement
+    user_projects = Project.objects.filter(author=request.user).order_by('-created_at')
+    user_tutorials = Tutorial.objects.filter(author=request.user).order_by('-created_at')
     
     # Get total likes on user's posts
     total_likes = Like.objects.filter(post__author=request.user).count()
@@ -123,22 +130,18 @@ def dashboard(request):
     # Get unread notifications
     notifications = request.user.notifications.filter(is_read=False).order_by('-created_at')[:5]
     
-    # Get featured projects and tutorials
-    featured_projects = Project.objects.filter(featured=True)[:3]
-    featured_tutorials = Tutorial.objects.filter(featured=True)[:3]
-    
     # Get user's profile
     user_profile = request.user.profile
 
     context = {
         'user_posts': user_posts,
+        'user_projects': user_projects,
+        'user_tutorials': user_tutorials,
         'total_likes': total_likes,
         'total_comments': total_comments,
         'user_comments': user_comments,
         'notifications': notifications,
-        'user_projects': featured_projects,
-        'user_tutorials': featured_tutorials,
-        'user_profile': user_profile,  # Add profile to context
+        'user_profile': user_profile,
     }
     return render(request, 'dashboard.html', context)
 
