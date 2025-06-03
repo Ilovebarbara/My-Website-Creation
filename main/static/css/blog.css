@@ -574,3 +574,43 @@ html {
         transform: translateX(100%);
     }
 }
+
+/* Action Popover Styles */
+.action-popover {
+    --bs-popover-max-width: 200px;
+    --bs-popover-border-color: var(--border-color);
+    --bs-popover-bg: var(--bg-primary);
+    --bs-popover-header-bg: var(--card-bg);
+    --bs-popover-header-color: var(--text-primary);
+    --bs-popover-body-color: var(--text-primary);
+}
+
+.action-popover .list-group {
+    background: transparent;
+}
+
+.action-popover .list-group-item {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-popover .list-group-item:hover {
+    background: var(--bs-tertiary-bg);
+}
+
+.action-popover .list-group-item.text-success:hover {
+    color: var(--bs-success) !important;
+    background: rgba(var(--bs-success-rgb), 0.1);
+}
+
+.action-popover .list-group-item.text-danger {
+    color: var(--bs-danger) !important;
+}
+
+.action-popover .list-group-item.text-danger:hover {
+    background: rgba(var(--bs-danger-rgb), 0.1);
+}

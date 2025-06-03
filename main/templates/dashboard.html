@@ -60,30 +60,29 @@
                 <div class="card post-card mb-4" id="post-{{ post.id }}">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title mb-0">{{ post.title }}</h5>
-                            <div class="dropdown">
-                                <button class="btn btn-link" type="button" data-bs-toggle="dropdown">
-                                    <i class="bi bi-three-dots"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'edit_post' pk=post.id %}">
-                                            <i class="bi bi-pencil me-2"></i>Edit
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <button class="dropdown-item text-success toggle-featured" data-post-id="{{ post.id }}">
-                                            <i class="bi bi-star{% if not post.featured %}-fill{% endif %} me-2"></i>
-                                            {% if post.featured %}Remove from{% else %}Add to{% endif %} Featured
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button class="dropdown-item text-danger delete-post" data-post-id="{{ post.id }}">
-                                            <i class="bi bi-trash me-2"></i>Delete
-                                        </button>
-                                    </li>
-                                </ul>
-                            </div>
+                            <h5 class="card-title mb-0">{{ post.title }}</h5>                            <button class="btn btn-link btn-sm p-0" 
+                                    type="button" 
+                                    data-bs-toggle="popover" 
+                                    data-bs-placement="left"
+                                    data-bs-custom-class="action-popover"
+                                    data-bs-html="true"
+                                    data-bs-content='
+                                        <div class="list-group list-group-flush">
+                                            <a href="{% url 'edit_post' pk=post.id %}" class="list-group-item">
+                                                <i class="bi bi-pencil me-2"></i>Edit
+                                            </a>
+                                            <button class="list-group-item text-success toggle-featured" data-post-id="{{ post.id }}">
+                                                <i class="bi bi-star{% if not post.featured %}-fill{% endif %} me-2"></i>
+                                                {% if post.featured %}Remove from{% else %}Add to{% endif %} Featured
+                                            </button>
+                                            <button class="list-group-item text-danger delete-post" data-post-id="{{ post.id }}">
+                                                <i class="bi bi-trash me-2"></i>Delete
+                                            </button>
+                                        </div>
+                                    '
+                                    title="Post Actions">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
                         </div>
                         <p class="card-text">{{ post.content|truncatewords:50 }}</p>
                         <div class="d-flex justify-content-between align-items-center">
@@ -114,113 +113,21 @@
                     </a>
                 </div>
             {% endfor %}
-    <hr>
-    <h3>Your Comments</h3>
-    {% for comment in user_comments %}
-        <div class="mb-2 p-2 border rounded">
-            <strong>{{ comment.post.title }}</strong>: {{ comment.content|truncatewords:15 }}
-        </div>
-    {% empty %}
-        <p>You have not made any comments yet.</p>
-    {% endfor %}
-    <hr>
-    <h3>Your Projects</h3>
-    {% for project in user_projects %}
-        <div class="card card-custom mb-3" id="project-{{ project.id }}">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="card-title mb-0">{{ project.title }}</h5>
-                    <div class="dropdown">
-                        <button class="btn btn-link" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-three-dots"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li>
-                                <a class="dropdown-item" href="{% url 'edit_project' pk=project.id %}">
-                                    <i class="bi bi-pencil me-2"></i>Edit
-                                </a>
-                            </li>
-                            <li>
-                                <button class="dropdown-item text-success toggle-featured" data-project-id="{{ project.id }}">
-                                    <i class="bi bi-star{% if not project.featured %}-fill{% endif %} me-2"></i>
-                                    {% if project.featured %}Remove from{% else %}Add to{% endif %} Featured
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                <p class="card-text">{{ project.description|truncatewords:50 }}</p>
-                {% if project.link %}
-                <a href="{{ project.link }}" class="btn btn-outline-success btn-sm" target="_blank">
-                    <i class="bi bi-box-arrow-up-right"></i> View Project
-                </a>
-                {% endif %}
-            </div>
-        </div>
-    {% empty %}
-        <div class="text-center py-4">
-            <i class="bi bi-laptop display-4 text-muted"></i>
-            <h5 class="mt-3">No Projects Yet</h5>
-            <p class="text-muted">Start by creating your first project!</p>
-            <a href="{% url 'create_project' %}" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Create New Project
-            </a>
-        </div>
-    {% endfor %}
 
-    <hr>
-    <h3>Your Tutorials</h3>
-    {% for tutorial in user_tutorials %}
-        <div class="card mb-3" id="tutorial-{{ tutorial.id }}">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="card-title mb-0">{{ tutorial.title }}</h5>
-                    <div class="dropdown">
-                        <button class="btn btn-link" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-three-dots"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li>
-                                <a class="dropdown-item" href="{% url 'edit_tutorial' pk=tutorial.id %}">
-                                    <i class="bi bi-pencil me-2"></i>Edit
-                                </a>
-                            </li>
-                            <li>
-                                <button class="dropdown-item text-danger delete-tutorial" data-tutorial-id="{{ tutorial.id }}">
-                                    <i class="bi bi-trash me-2"></i>Delete
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
+            <hr>
+            <h3>Your Comments</h3>
+            {% for comment in user_comments %}
+                <div class="mb-2 p-2 border rounded">
+                    <strong>{{ comment.post.title }}</strong>: {{ comment.content|truncatewords:15 }}
                 </div>
-                <div class="mb-2">
-                    <span class="badge bg-primary">{{ tutorial.get_difficulty_level_display }}</span>
-                    {% if tutorial.featured %}
-                        <span class="badge bg-success">Featured</span>
-                    {% endif %}
-                </div>
-                <p class="card-text">{{ tutorial.content|truncatewords:50 }}</p>
-                <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted">
-                        <i class="bi bi-calendar"></i> {{ tutorial.created_at|date:"F j, Y" }}
-                    </small>
-                </div>
-            </div>
-        </div>
-    {% empty %}
-        <div class="text-center py-5">
-            <i class="bi bi-book display-4 text-muted"></i>
-            <h5 class="mt-3">No Tutorials Yet</h5>
-            <p class="text-muted">Start creating your first tutorial!</p>
-            <a href="{% url 'create_tutorial' %}" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Create New Tutorial
-            </a>
-        </div>
-    {% endfor %}
+            {% empty %}
+                <p>You have not made any comments yet.</p>
+            {% endfor %}
         </div>
 
         <!-- Right Sidebar -->
         <div class="col-lg-3 sidebar">
+            <!-- Quick Stats Card -->
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">Quick Stats</h5>
@@ -241,6 +148,107 @@
                 </div>
             </div>
 
+            <!-- Projects Section -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Your Projects</h5>
+                    {% for project in user_projects %}
+                        <div class="card card-custom mb-3" id="project-{{ project.id }}">
+                            <div class="card-body p-2">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="card-title mb-0">{{ project.title }}</h6>                                    <button class="btn btn-link btn-sm p-0" 
+                                            type="button" 
+                                            data-bs-toggle="popover" 
+                                            data-bs-placement="left"
+                                            data-bs-custom-class="action-popover"
+                                            data-bs-html="true"
+                                            data-bs-content='                                                <div class="list-group list-group-flush">
+                                                    <a href="{% url 'edit_project' pk=project.id %}" class="list-group-item">
+                                                        <i class="bi bi-pencil me-2"></i>Edit
+                                                    </a>
+                                                    <button class="list-group-item text-success toggle-featured" data-project-id="{{ project.id }}">
+                                                        <i class="bi bi-star{% if not project.featured %}-fill{% endif %} me-2"></i>
+                                                        {% if project.featured %}Remove from{% else %}Add to{% endif %} Featured
+                                                    </button>
+                                                    <button class="list-group-item text-danger delete-project" data-project-id="{{ project.id }}">
+                                                        <i class="bi bi-trash me-2"></i>Delete
+                                                    </button>
+                                                </div>
+                                            '
+                                            title="Project Actions">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+                                </div>
+                                <p class="card-text small">{{ project.description|truncatewords:20 }}</p>
+                                {% if project.link %}
+                                <a href="{{ project.link }}" class="btn btn-outline-success btn-sm" target="_blank">
+                                    <i class="bi bi-box-arrow-up-right"></i> View
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-3">
+                            <i class="bi bi-laptop text-muted"></i>
+                            <p class="small mb-2">No Projects Yet</p>
+                            <a href="{% url 'create_project' %}" class="btn btn-success btn-sm">
+                                <i class="bi bi-plus-circle"></i> Create Project
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Tutorials Section -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Your Tutorials</h5>
+                    {% for tutorial in user_tutorials %}
+                        <div class="card mb-3" id="tutorial-{{ tutorial.id }}">
+                            <div class="card-body p-2">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="card-title mb-0">{{ tutorial.title }}</h6>                                    <button class="btn btn-link btn-sm p-0" 
+                                            type="button" 
+                                            data-bs-toggle="popover" 
+                                            data-bs-placement="left"
+                                            data-bs-custom-class="action-popover"
+                                            data-bs-html="true"
+                                            data-bs-content='
+                                                <div class="list-group list-group-flush">
+                                                    <a href="{% url 'edit_tutorial' pk=tutorial.id %}" class="list-group-item">
+                                                        <i class="bi bi-pencil me-2"></i>Edit
+                                                    </a>
+                                                    <button class="list-group-item text-danger delete-tutorial" data-tutorial-id="{{ tutorial.id }}">
+                                                        <i class="bi bi-trash me-2"></i>Delete
+                                                    </button>
+                                                </div>
+                                            '
+                                            title="Tutorial Actions">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="badge bg-primary">{{ tutorial.get_difficulty_level_display }}</span>
+                                    {% if tutorial.featured %}
+                                        <span class="badge bg-success">Featured</span>
+                                    {% endif %}
+                                </div>
+                                <p class="card-text small">{{ tutorial.content|truncatewords:20 }}</p>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-3">
+                            <i class="bi bi-book text-muted"></i>
+                            <p class="small mb-2">No Tutorials Yet</p>
+                            <a href="{% url 'create_tutorial' %}" class="btn btn-success btn-sm">
+                                <i class="bi bi-plus-circle"></i> Create Tutorial
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
             {% if notifications %}
             <div class="card">
                 <div class="card-body">
@@ -291,11 +299,22 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize managers
+    const postManager = new PostManager();
     const tutorialManager = new TutorialManager();
     const projectManager = new ProjectManager();
     
-    let postToDelete = null;
-    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    // Global handler for closing popovers when clicking outside
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('[data-bs-toggle="popover"]') && 
+            !event.target.closest('.popover')) {
+            document.querySelectorAll('[data-bs-toggle="popover"]').forEach(trigger => {
+                const popover = bootstrap.Popover.getInstance(trigger);
+                if (popover) {
+                    popover.hide();
+                }
+            });
+        }
+    });
 
     // Handle delete button clicks
     document.querySelectorAll('.delete-post').forEach(button => {

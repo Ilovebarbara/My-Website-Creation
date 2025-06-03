@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'projects/css/projects.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Projects</h1>
+            {% if user.is_authenticated %}
+            <a href="{% url 'projects:create_project' %}" class="btn btn-primary mb-4">Add New Project</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="project-filters mb-4">
+        <button class="btn btn-outline-primary project-filter active" data-filter="all">All</button>
+        <button class="btn btn-outline-primary project-filter" data-filter="featured">Featured</button>
+    </div>
+
+    <div class="row">
+        {% for project in projects %}
+        <div class="col-md-6 col-lg-4">
+            <div class="project-card {% if project.featured %}featured-project{% endif %}" data-category="{% if project.featured %}featured{% endif %}">
+                <h3 class="project-title">{{ project.title }}</h3>
+                <p class="project-description">{{ project.description|truncatewords:30 }}</p>
+                {% if project.link %}
+                <a href="{{ project.link }}" class="project-link" target="_blank">View Project <i class="fas fa-external-link-alt"></i></a>
+                {% endif %}
+                <div class="project-meta">
+                    <small>Created by {{ project.author }} on {{ project.created_at|date:"M d, Y" }}</small>
+                </div>
+                {% if user == project.author %}
+                <div class="mt-2">
+                    <a href="{% url 'projects:edit_project' project.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <a href="{% url 'projects:delete_project' project.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p class="text-center">No projects found.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'projects/js/projects.js' %}"></script>
+{% endblock %}
