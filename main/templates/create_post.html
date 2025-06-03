@@ -29,13 +29,14 @@
                             {% endif %}
                         </div>
                         <div class="mb-3">
-                            <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
-                            {{ form.category }}
-                            {% if form.category.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.category.errors.0 }}
-                            </div>
-                            {% endif %}
+                            <label for="category" class="form-label">Category</label>
+                            <select id="category" name="category" class="form-select" required>
+                                <option value="" disabled selected>Select a category</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                                <option value="none">None of the Above</option>
+                            </select>
                         </div>
                         <div class="d-flex justify-content-between mt-4">
                             <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
@@ -71,6 +72,16 @@ document.addEventListener('DOMContentLoaded', function() {
     textarea.addEventListener('input', function() {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
+    });
+
+    const categorySelect = document.getElementById('category');
+
+    // Ensure a category is selected before form submission
+    form.addEventListener('submit', function(event) {
+        if (!categorySelect.value) {
+            event.preventDefault();
+            alert('Please select a category.');
+        }
     });
 });
 </script>
