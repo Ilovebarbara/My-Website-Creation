@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load form_filters %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+    .signup-card {
+        background-color: #1e1e1e;
+        border: 1px solid #333;
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+    .form-control {
+        background-color: #2d2d2d;
+        border: 1px solid #404040;
+        color: #e0e0e0;
+    }
+    .form-control:focus {
+        background-color: #333;
+        border-color: #0d6efd;
+        color: #ffffff;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    .form-label {
+        color: #e0e0e0;
+    }
+    .btn-complete {
+        background: linear-gradient(45deg, #0d6efd, #0099ff);
+        border: none;
+        transition: all 0.3s ease;
+    }
+    .btn-complete:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+    }
+    .provider-info {
+        background-color: #2d2d2d;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+    }
+    .provider-icon {
+        width: 24px;
+        height: 24px;
+        margin-right: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card signup-card">
+                <div class="card-body p-4">
+                    <h1 class="text-center mb-4 fw-bold">Complete Your Profile</h1>
+
+                    <div class="provider-info d-flex align-items-center">
+                        {% if sociallogin.provider.name == 'Google' %}
+                            <img src="https://www.google.com/favicon.ico" alt="Google" class="provider-icon">
+                        {% endif %}
+                        <span>Signing up with {{ sociallogin.provider.name }}</span>
+                    </div>
+
+                    {% if form.errors %}
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <h4 class="alert-heading">Please correct the following errors:</h4>
+                            {{ form.errors }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'socialaccount_signup' %}">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">Email Address</label>
+                            {{ form.email|addclass:"form-control form-control-lg" }}
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">{{ form.email.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                            {{ form.username|addclass:"form-control form-control-lg" }}
+                            {% if form.username.errors %}
+                                <div class="invalid-feedback d-block">{{ form.username.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        {% if redirect_field_value %}
+                            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                        {% endif %}
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-lg btn-complete">
+                                <i class="bi bi-check-circle me-2"></i>Complete Sign Up
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <small class="text-muted">
+                            <i class="bi bi-shield-check me-1"></i>
+                            By signing up, you agree to our Terms of Service and Privacy Policy
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add animation to form inputs
+    const inputs = document.querySelectorAll('.form-control');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.classList.add('was-validated');
+        });
+    });
+
+    // Add loading state to submit button
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function() {
+        const button = this.querySelector('button[type="submit"]');
+        button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating your account...';
+        button.disabled = true;
+    });
+});
+</script>
+{% endblock %}
