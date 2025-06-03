@@ -1,124 +1,88 @@
 {% extends 'base.html' %}
 {% block content %}
 <!-- Hero Section -->
-<section class="container text-center" style="padding-top: 7rem;">
-    <h1 class="display-4 fw-bold">My CodeVerse</h1>
-    <p class="lead text-success">A Developer's Log Across Stacks and Clouds</p>
+<section class="container-fluid text-center py-5 bg-dark text-white">
+    <h1 class="display-3 fw-bold text-light animate__animated animate__fadeInDown">Welcome to My CodeVerse</h1>
+    <p class="lead text-secondary animate__animated animate__fadeInUp">A Developer's Log Across Stacks and Clouds</p>
+    <button class="btn btn-warning btn-lg mt-3 animate__animated animate__zoomIn" onclick="scrollToSection('categories')">Explore Categories</button>
 </section>
 
 <!-- Blog Categories -->
 <section id="categories" class="container mt-5">
-    <h2 class="mb-4 section-title">Blog Categories</h2>
+    <h2 class="mb-4 section-title text-center text-uppercase text-light">Blog Categories</h2>
     <div class="row g-4">
         {% for cat in categories %}
-        <div class="col-12 col-md-6 col-lg-3">
-            <div class="category-card p-4 h-100 text-center">
-                <div class="category-icon mb-2">{{ cat.icon }}</div>
-                <h5>{{ cat.name }}</h5>
-            </div>
+        <div class="col-12 col-md-6 col-lg-3 text-center">
+            <div class="category-icon mb-3 text-warning animate__animated animate__pulse">{{ cat.icon }}</div>
         </div>
         {% endfor %}
-        <div class="col-12 col-md-6 col-lg-3">
-            <div class="category-card p-4 h-100 text-center">
-                <div class="category-icon mb-2">
-                    <i class="bi bi-dash-circle"></i>
-                </div>
-                <h5>None of the Above</h5>
-            </div>
-        </div>
     </div>
 </section>
 
 <!-- Featured Blog Posts -->
 <section class="container mt-5">
-    <h2 class="section-title mb-3">Featured Blog Posts</h2>
+    <h2 class="section-title mb-4 text-center text-uppercase text-light">Featured Blog Posts</h2>
     <div class="row g-4">
         {% for post in featured_posts %}
         <div class="col-md-6 col-lg-4">
-            <div class="card card-custom h-100">
+            <div class="card h-100 shadow-lg border-0 bg-secondary text-white animate__animated animate__fadeIn">
                 <div class="card-body">
-                    <h5 class="card-title">{{ post.title }}</h5>
-                    <p class="card-text">{{ post.content|truncatewords:20 }}</p>
-                    <a href="{% url 'blog_detail' slug=post.slug %}" class="btn btn-success">Read More</a>
+                    <h5 class="card-title fw-bold">{{ post.title }}</h5>
+                    <a href="{% url 'blog_detail' slug=post.slug %}" class="btn btn-warning mt-3">Read More</a>
                 </div>
             </div>
         </div>
-        {% empty %}
-        <p>No featured posts yet.</p>
         {% endfor %}
     </div>
 </section>
 
 <!-- Projects Section -->
-<section id="projects" class="container projects-section mt-5">
-    <h2 class="section-title mb-3">Featured Projects</h2>
+<section id="projects" class="container mt-5">
+    <h2 class="section-title mb-4 text-center text-uppercase text-light">Featured Projects</h2>
     <div class="row g-4">
         {% for project in projects %}
         <div class="col-md-6 col-lg-4">
-            <div class="card card-custom h-100">
+            <div class="card h-100 shadow-lg border-0 bg-secondary text-white animate__animated animate__fadeIn">
                 <div class="card-body">
-                    <h5 class="card-title">{{ project.title }}</h5>
-                    <p class="card-text">{{ project.description }}</p>
+                    <h5 class="card-title fw-bold">{{ project.title }}</h5>
                     {% if project.link %}
-                    <a href="{{ project.link }}" class="btn btn-success" target="_blank">View Project</a>
+                    <a href="{{ project.link }}" class="btn btn-warning mt-3" target="_blank">View Project</a>
                     {% endif %}
                 </div>
             </div>
         </div>
-        {% empty %}
-        <p>No featured projects yet.</p>
         {% endfor %}
     </div>
 </section>
 
 <!-- Tutorials Section -->
-<section id="tutorials" class="container tutorials-section mt-5">
-    <h2 class="section-title mb-3">Featured Tutorials</h2>
+<section id="tutorials" class="container mt-5">
+    <h2 class="section-title mb-4 text-center text-uppercase text-light">Featured Tutorials</h2>
     <div class="row g-4">
         {% for tutorial in tutorials %}
         <div class="col-md-6 col-lg-4">
-            <div class="card card-custom h-100">
+            <div class="card h-100 shadow-lg border-0 bg-secondary text-white animate__animated animate__fadeIn">
                 <div class="card-body">
-                    <h5 class="card-title">{{ tutorial.title }}</h5>
-                    <p class="card-text">{{ tutorial.description }}</p>
+                    <h5 class="card-title fw-bold">{{ tutorial.title }}</h5>
                     {% if tutorial.link %}
-                    <a href="{{ tutorial.link }}" class="btn btn-success" target="_blank">Read Tutorial</a>
+                    <a href="{{ tutorial.link }}" class="btn btn-warning mt-3" target="_blank">Read Tutorial</a>
                     {% endif %}
                 </div>
             </div>
         </div>
-        {% empty %}
-        <p>No featured tutorials yet.</p>
         {% endfor %}
     </div>
 </section>
 
 <!-- About Section -->
-<section id="about" class="container about-section mt-5">
-    <h2 class="section-title mb-3">About My CodeVerse</h2>
-    <p>Welcome to <strong>My CodeVerse</strong> — a space where I document my coding journey across the ever-expanding universe of software development.</p>
-    <p>I'm a full-stack developer working with Python (mainly using Django) and Java for backend development, and building clean, responsive user interfaces with JavaScript, HTML, CSS, and Bootstrap on the frontend.</p>
-    <p>I also work with Google Cloud Platform (GCP) to deploy and manage my applications, exploring services like cloud hosting, databases, and storage.</p>
-    <p>Whether I’m designing APIs with Django, refining frontend layouts, or scaling apps in the cloud, this blog is where I share my projects, insights, and the lessons I learn along the way.</p>
-    <p><strong>My CodeVerse</strong> is more than just a dev blog — it’s a personal log of growth, experimentation, and passion for technology.</p>
+<section id="about" class="container mt-5 py-5 bg-dark text-white">
+    <h2 class="section-title mb-4 text-center text-uppercase">About My CodeVerse</h2>
+    <p class="text-center">Welcome to <strong>My CodeVerse</strong> — a space where I document my coding journey across the ever-expanding universe of software development.</p>
 </section>
 
-<!-- Contact Section -->
-<section id="contact" class="container contact-section mt-5 mb-5">
-    <h2 class="section-title mb-3">Contact & About Me</h2>
-    <div class="row">
-        <div class="col-md-6">
-            <h5>Contact</h5>
-            <ul class="list-unstyled">
-                <li>Email: <a href="mailto:your.email@example.com">your.email@example.com</a></li>
-                <li>LinkedIn: <a href="#">linkedin.com/in/yourprofile</a></li>
-                <li>GitHub: <a href="#">github.com/yourusername</a></li>
-            </ul>
-        </div>
-        <div class="col-md-6">
-            <h5>About Me</h5>
-            <p>Hi, I'm the creator of My CodeVerse! I love building full-stack apps, exploring cloud tech, and sharing what I learn. Let's connect and grow together in this vast universe of code.</p>
-        </div>
-    </div>
-</section>
+<script>
+    function scrollToSection(sectionId) {
+        document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
 {% endblock %}
