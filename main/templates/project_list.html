@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h1>Projects</h1>
+    <div class="row g-4">
+        {% for project in projects %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card card-custom h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ project.title }}</h5>
+                    <p class="card-text">{{ project.description }}</p>
+                    {% if project.link %}
+                    <a href="{{ project.link }}" class="btn btn-success" target="_blank">View Project</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p>No projects found.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

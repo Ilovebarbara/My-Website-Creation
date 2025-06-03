@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h1>Tutorials</h1>
+    <div class="row g-4">
+        {% for tutorial in tutorials %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card card-custom h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ tutorial.title }}</h5>
+                    <p class="card-text">{{ tutorial.description }}</p>
+                    {% if tutorial.link %}
+                    <a href="{{ tutorial.link }}" class="btn btn-success" target="_blank">Read Tutorial</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p>No tutorials found.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
