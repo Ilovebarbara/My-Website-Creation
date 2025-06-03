@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .profile-picture {
+        border: 3px solid #4CAF50;
+        border-radius: 50%;
+        padding: 5px;
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        margin-bottom: 15px; /* Ensure spacing between picture and username */
+    }
+    .profile-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        text-align: center;
+        margin-top: 20px;
+    }
+</style>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Left Sidebar -->
+        <div class="col-lg-3 sidebar">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="profile-container">
+                        {% if user.profile.avatar %}
+                            <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="profile-picture">
+                        {% else %}
+                            <div class="avatar-placeholder">{{ user.username.0|upper }}</div>
+                        {% endif %}
+                        <h5 class="mb-2">{{ user.username }}</h5>
+                        <small class="text-muted mb-2">@{{ user.username }}</small>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'create_post' %}" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> Create New Post
+                        </a>
+                        <a href="{% url 'edit_profile' %}" class="btn btn-outline-success">
+                            <i class="bi bi-gear"></i> Edit Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-6">
+            <h4 class="mb-4">Your Blog Posts</h4>
+            {% for post in user_posts %}
+                <div class="card post-card mb-4" id="post-{{ post.id }}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title mb-0">{{ post.title }}</h5>
+                            <div class="dropdown">
+                                <button class="btn btn-link" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'edit_post' pk=post.id %}">
+                                            <i class="bi bi-pencil me-2"></i>Edit
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item text-success toggle-featured" data-post-id="{{ post.id }}">
+                                            <i class="bi bi-star{% if not post.featured %}-fill{% endif %} me-2"></i>
+                                            {% if post.featured %}Remove from{% else %}Add to{% endif %} Featured
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item text-danger delete-post" data-post-id="{{ post.id }}">
+                                            <i class="bi bi-trash me-2"></i>Delete
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <p class="card-text">{{ post.content|truncatewords:50 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="post-meta">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar"></i> {{ post.created_at|date:"F j, Y" }}
+                                </small>
+                                <small class="text-muted ms-3">
+                                    <i class="bi bi-heart"></i> {{ post.likes.count }}
+                                </small>
+                                <small class="text-muted ms-3">
+                                    <i class="bi bi-chat"></i> {{ post.comments.count }}
+                                </small>
+                            </div>
+                            <a href="{% url 'blog_detail' slug=post.slug %}" class="btn btn-outline-success btn-sm">
+                                View Post
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="text-center py-5">
+                    <i class="bi bi-pencil-square display-4 text-muted"></i>
+                    <h5 class="mt-3">No Posts Yet</h5>
+                    <p class="text-muted">Start writing your first blog post!</p>
+                    <a href="{% url 'create_post' %}" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Create New Post
+                    </a>
+                </div>
+            {% endfor %}
+    <hr>
+    <h3>Your Comments</h3>
+    {% for comment in user_comments %}
+        <div class="mb-2 p-2 border rounded">
+            <strong>{{ comment.post.title }}</strong>: {{ comment.content|truncatewords:15 }}
+        </div>
+    {% empty %}
+        <p>You have not made any comments yet.</p>
+    {% endfor %}
+    <hr>
+    <h3>Featured Projects</h3>
+    {% for project in user_projects %}
+        <div class="card card-custom mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ project.title }}</h5>
+                <p class="card-text">{{ project.description }}</p>
+                {% if project.link %}
+                <a href="{{ project.link }}" class="btn btn-success btn-sm" target="_blank">View Project</a>
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <p>No featured projects.</p>
+    {% endfor %}
+    <hr>
+    <h3>Featured Tutorials</h3>
+    {% for tutorial in user_tutorials %}
+        <div class="card card-custom mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ tutorial.title }}</h5>
+                <p class="card-text">{{ tutorial.description }}</p>
+                {% if tutorial.link %}
+                <a href="{{ tutorial.link }}" class="btn btn-success btn-sm" target="_blank">Read Tutorial</a>
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <p>No featured tutorials.</p>
+    {% endfor %}
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="col-lg-3 sidebar">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Stats</h5>
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h4>{{ user_posts.count }}</h4>
+                            <small class="text-muted">Posts</small>
+                        </div>
+                        <div class="col-4">
+                            <h4>{{ total_likes }}</h4>
+                            <small class="text-muted">Likes</small>
+                        </div>
+                        <div class="col-4">
+                            <h4>{{ total_comments }}</h4>
+                            <small class="text-muted">Comments</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if notifications %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Activity</h5>
+                    {% for notification in notifications %}
+                    <div class="notification-item {% if not notification.is_read %}unread{% endif %} mb-2">
+                        <small class="text-muted float-end">{{ notification.created_at|timesince }} ago</small>
+                        <p class="mb-0">
+                            <strong>{{ notification.sender.username }}</strong> 
+                            {% if notification.notification_type == 'like' %}
+                                liked your post
+                            {% elif notification.notification_type == 'comment' %}
+                                commented on your post
+                            {% elif notification.notification_type == 'share' %}
+                                shared your post
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Post</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this post? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let postToDelete = null;
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+
+    // Handle delete button clicks
+    document.querySelectorAll('.delete-post').forEach(button => {
+        button.addEventListener('click', function() {
+            postToDelete = this.dataset.postId;
+            deleteModal.show();
+        });
+    });
+
+    // Handle delete confirmation
+    document.getElementById('confirmDelete').addEventListener('click', function() {
+        if (postToDelete) {
+            fetch(`/post/delete/${postToDelete}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const postElement = document.getElementById(`post-${postToDelete}`);
+                    postElement.remove();
+                    deleteModal.hide();
+                }
+            });
+        }
+    });
+
+    // Handle featured toggle
+    document.querySelectorAll('.toggle-featured').forEach(button => {
+        button.addEventListener('click', function() {
+            const postId = this.dataset.postId;
+            fetch(`/post/toggle-featured/${postId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const icon = this.querySelector('i');
+                    if (data.featured) {
+                        icon.className = 'bi bi-star me-2';
+                        this.textContent = 'Remove from Featured';
+                    } else {
+                        icon.className = 'bi bi-star-fill me-2';
+                        this.textContent = 'Add to Featured';
+                    }
+                }
+            });
+        });
+    });
+});
+
+function getCSRFToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+</script>
+{% endblock %}
+{% endblock %}
