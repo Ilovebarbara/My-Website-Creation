@@ -70,8 +70,7 @@ def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            Profile.objects.create(user=user)  # Create profile for new user
+            user = form.save()  # Profile will be created by the signal
             login(request, user)
             return redirect('home')
         else:
