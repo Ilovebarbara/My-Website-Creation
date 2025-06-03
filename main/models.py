@@ -42,9 +42,16 @@ class Project(models.Model):
         return self.title
 
 class Tutorial(models.Model):
+    DIFFICULTY_CHOICES = [
+        ('beginner', 'Beginner'),
+        ('intermediate', 'Intermediate'),
+        ('advanced', 'Advanced')
+    ]
+    
     title = models.CharField(max_length=200)
-    description = models.TextField()
-    link = models.URLField(blank=True)
+    content = models.TextField()
+    difficulty_level = models.CharField(max_length=20, choices=DIFFICULTY_CHOICES, default='beginner')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, null=True)  # Temporarily allow null
     created_at = models.DateTimeField(auto_now_add=True)
     featured = models.BooleanField(default=False)
 

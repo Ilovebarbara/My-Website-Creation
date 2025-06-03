@@ -107,7 +107,83 @@ class PostManager {
     }
 }
 
-// Initialize post manager when DOM is loaded
+class ProjectManager {
+    constructor() {
+        this.setupEventListeners();
+    }
+
+    setupEventListeners() {
+        document.querySelectorAll('[data-project-id]').forEach(button => {
+            if (button.classList.contains('delete-project')) {
+                button.addEventListener('click', () => this.handleDelete(button.dataset.projectId));
+            } else if (button.classList.contains('toggle-featured')) {
+                button.addEventListener('click', () => this.handleFeaturedToggle(button.dataset.projectId));
+            }
+        });
+    }
+
+    async handleDelete(projectId) {
+        if (!confirm('Are you sure you want to delete this project?')) return;
+
+        try {
+            const response = await fetch(`/project/delete/${projectId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': this.getCSRFToken(),
+                }
+            });
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                document.getElementById(`project-${projectId}`)?.remove();
+                this.showToast('Project deleted successfully', 'success');
+            }
+        } catch (error) {
+            this.showToast('Failed to delete project', 'error');
+        }
+    }
+}
+
+class TutorialManager {
+    constructor() {
+        this.setupEventListeners();
+    }
+
+    setupEventListeners() {
+        document.querySelectorAll('[data-tutorial-id]').forEach(button => {
+            if (button.classList.contains('delete-tutorial')) {
+                button.addEventListener('click', () => this.handleDelete(button.dataset.tutorialId));
+            } else if (button.classList.contains('toggle-featured')) {
+                button.addEventListener('click', () => this.handleFeaturedToggle(button.dataset.tutorialId));
+            }
+        });
+    }
+
+    async handleDelete(tutorialId) {
+        if (!confirm('Are you sure you want to delete this tutorial?')) return;
+
+        try {
+            const response = await fetch(`/tutorial/delete/${tutorialId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': this.getCSRFToken(),
+                }
+            });
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                document.getElementById(`tutorial-${tutorialId}`)?.remove();
+                this.showToast('Tutorial deleted successfully', 'success');
+            }
+        } catch (error) {
+            this.showToast('Failed to delete tutorial', 'error');
+        }
+    }
+}
+
+// Initialize managers
 document.addEventListener('DOMContentLoaded', () => {
     new PostManager();
+    new ProjectManager();
+    new TutorialManager();
 });

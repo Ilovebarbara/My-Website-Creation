@@ -24,4 +24,12 @@ urlpatterns = [
     path('follow/', views.follow_toggle, name='follow_toggle'),
     path('notifications/', views.notifications, name='notifications'),
     path('contact/', views.contact, name='contact'),  # Added contact URL
+    # Project URLs
+    path('project/create/', views.create_project, name='create_project'),
+    path('project/edit/<int:pk>/', views.edit_project, name='edit_project'),
+    path('project/delete/<int:pk>/', views.delete_project, name='delete_project'),
+    # Tutorial URLs
+    path('tutorial/create/', views.create_tutorial, name='create_tutorial'),
+    path('tutorial/edit/<int:pk>/', views.edit_tutorial, name='edit_tutorial'),
+    path('tutorial/delete/<int:pk>/', views.delete_tutorial, name='delete_tutorial'),
 ]

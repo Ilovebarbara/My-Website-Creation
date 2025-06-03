@@ -9,7 +9,7 @@ from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from .models import BlogPost, BlogCategory, Project, Tutorial, Comment, Profile, Notification, Like, Share
-from .forms import CommentForm, PostForm, ProfileUpdateForm
+from .forms import CommentForm, PostForm, ProfileUpdateForm, ProjectForm, TutorialForm
 
 def home(request):
     categories = BlogCategory.objects.all()
@@ -318,3 +318,71 @@ def contact(request):
         return redirect('contact')
         
     return render(request, 'contact.html')
+
+@login_required
+def create_project(request):
+    if request.method == 'POST':
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            project = form.save(commit=False)
+            project.author = request.user
+            project.save()
+            messages.success(request, 'Project created successfully!')
+            return redirect('dashboard')
+    else:
+        form = ProjectForm()
+    return render(request, 'create_project.html', {'form': form})
+
+@login_required
+def edit_project(request, pk):
+    project = get_object_or_404(Project, pk=pk, author=request.user)
+    if request.method == 'POST':
+        form = ProjectForm(request.POST, instance=project)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Project updated successfully!')
+            return redirect('dashboard')
+    else:
+        form = ProjectForm(instance=project)
+    return render(request, 'create_project.html', {'form': form, 'editing': True})
+
+@login_required
+def create_tutorial(request):
+    if request.method == 'POST':
+        form = TutorialForm(request.POST)
+        if form.is_valid():
+            tutorial = form.save(commit=False)
+            tutorial.author = request.user
+            tutorial.save()
+            messages.success(request, 'Tutorial created successfully!')
+            return redirect('dashboard')
+    else:
+        form = TutorialForm()
+    return render(request, 'create_tutorial.html', {'form': form})
+
+@login_required
+def edit_tutorial(request, pk):
+    tutorial = get_object_or_404(Tutorial, pk=pk, author=request.user)
+    if request.method == 'POST':
+        form = TutorialForm(request.POST, instance=tutorial)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Tutorial updated successfully!')
+            return redirect('dashboard')
+    else:
+        form = TutorialForm(instance=tutorial)
+    return render(request, 'create_tutorial.html', {'form': form, 'editing': True})
+
+@login_required
+@require_POST
+def delete_project(request, pk):
+    project = get_object_or_404(Project, pk=pk, author=request.user)
+    project.delete()
+    return JsonResponse({'status': 'success'})
+
+@login_required
+@require_POST
+def delete_tutorial(request, pk):
+    tutorial = get_object_or_404(Tutorial, pk=pk, author=request.user)
+    tutorial.delete()
+    return JsonResponse({'status': 'success'})

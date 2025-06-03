@@ -1,6 +1,6 @@
 from django import forms
 from django.utils.text import slugify
-from .models import BlogPost, Comment, Profile
+from .models import BlogPost, Comment, Profile, Project, Tutorial
 
 class CommentForm(forms.ModelForm):
     class Meta:
@@ -57,5 +57,50 @@ class ProfileUpdateForm(forms.ModelForm):
             'avatar': forms.FileInput(attrs={
                 'class': 'form-control',
                 'accept': 'image/*'
+            })
+        }
+
+class ProjectForm(forms.ModelForm):
+    class Meta:
+        model = Project
+        fields = ['title', 'description', 'link', 'featured']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter project title'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Describe your project...'
+            }),
+            'link': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Project URL (optional)'
+            }),
+            'featured': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            })
+        }
+
+class TutorialForm(forms.ModelForm):
+    class Meta:
+        model = Tutorial
+        fields = ['title', 'content', 'difficulty_level', 'featured']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter tutorial title'
+            }),
+            'content': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 5,
+                'placeholder': 'Write your tutorial content here...'
+            }),
+            'difficulty_level': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'featured': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
             })
         }
