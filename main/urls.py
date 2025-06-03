@@ -15,7 +15,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('post/create/', views.create_post, name='create_post'),
     path('post/edit/<int:pk>/', views.edit_post, name='edit_post'),
-    path('post/delete/<int:pk>/', views.delete_post, name='delete_post'),
+    path('post/delete/<int:pk>/', views.delete_post, name='post_delete'),
     path('post/toggle-featured/<int:pk>/', views.toggle_featured, name='toggle_featured'),
     path('post/like/', views.like_post, name='like_post'),
     path('post/comment/<int:pk>/', views.add_comment, name='add_comment'),
@@ -27,7 +27,7 @@ urlpatterns = [
     # Project URLs
     path('project/create/', views.create_project, name='create_project'),
     path('project/edit/<int:pk>/', views.edit_project, name='edit_project'),
-    path('project/delete/<int:pk>/', views.delete_project, name='delete_project'),
+    path('project/delete/<int:pk>/', views.delete_project, name='project_delete'),
     # Tutorial URLs
     path('tutorial/create/', views.create_tutorial, name='create_tutorial'),
     path('tutorial/edit/<int:pk>/', views.edit_tutorial, name='edit_tutorial'),
