@@ -1,18 +1,71 @@
 {% extends 'base.html' %}
+{% load socialaccount %}
+
 {% block content %}
 <div class="container mt-5">
-    <h1>Register</h1>
+    <h1 class="text-center">Register</h1>
     {% if messages %}
-        <ul class="alert alert-danger">
-        {% for message in messages %}
-            <li>{{ message }}</li>
-        {% endfor %}
-        </ul>
+        <div class="alert alert-danger" role="alert">
+            <ul class="mb-0">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
     {% endif %}
-    <form method="post">
+    <form method="post" class="needs-validation" novalidate>
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-success">Register</button>
+        <div class="mb-3">
+            <label for="id_username" class="form-label">Username</label>
+            {{ form.username }}
+            <div class="invalid-feedback">
+                Please provide a valid username.
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="id_email" class="form-label">Email</label>
+            {{ form.email }}
+            <div class="invalid-feedback">
+                Please provide a valid email address.
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="id_password1" class="form-label">Password</label>
+            {{ form.password1 }}
+            <div class="invalid-feedback">
+                Please provide a password.
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="id_password2" class="form-label">Confirm Password</label>
+            {{ form.password2 }}
+            <div class="invalid-feedback">
+                Passwords must match.
+            </div>
+        </div>
+        <button type="submit" class="btn btn-success w-100">Register</button>
     </form>
+    <div class="text-center mt-3">
+        <p>Or register using:</p>
+        <a href="{% provider_login_url 'google' %}" class="btn btn-outline-danger">
+            <i class="bi bi-google"></i> Google
+        </a>
+    </div>
 </div>
+<script>
+    // Bootstrap 5 form validation
+    (function () {
+        'use strict'
+        const forms = document.querySelectorAll('.needs-validation')
+        Array.from(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+</script>
 {% endblock %}
