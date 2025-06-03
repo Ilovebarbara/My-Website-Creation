@@ -23,6 +23,10 @@ class PostForm(forms.ModelForm):
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Enter post title'
+            }),
+            'category': forms.Select(attrs={
+                'class': 'form-select',
+                'placeholder': 'Select a category'
             })
         }
 
