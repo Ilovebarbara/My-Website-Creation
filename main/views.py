@@ -154,7 +154,13 @@ def create_post(request):
             return redirect('dashboard')
     else:
         form = PostForm()
-    return render(request, 'create_post.html', {'form': form})
+    
+    categories = BlogCategory.objects.all()
+    return render(request, 'create_post.html', {
+        'form': form,
+        'categories': categories,
+        'editing': False
+    })
 
 @login_required
 def edit_post(request, pk):
