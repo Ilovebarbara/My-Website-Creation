@@ -3,6 +3,9 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.urls import reverse
+from django.utils import timezone
+import random
+import string
 
 # Create your models here.
 
@@ -121,6 +124,44 @@ class NewsletterSubscriber(models.Model):
 
     def __str__(self):
         return self.email
+
+class TwoFactorAuth(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used = models.BooleanField(default=False)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+
+    @staticmethod
+    def generate_code():
+        """Generate a 6-digit verification code"""
+        return ''.join(random.choices(string.digits, k=6))
+
+    def is_expired(self):
+        """Check if the code has expired"""
+        return timezone.now() > self.expires_at
+
+    def __str__(self):
+        return f"2FA code for {self.user.username} - {self.code}"
+
+    class Meta:
+        ordering = ['-created_at']
+
+class LoginAttempt(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    email = models.EmailField()
+    ip_address = models.GenericIPAddressField()
+    success = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    user_agent = models.TextField(blank=True)
+    
+    def __str__(self):
+        status = "Success" if self.success else "Failed"
+        return f"{status} login attempt for {self.email} from {self.ip_address}"
+    
+    class Meta:
+        ordering = ['-created_at']
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
