@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Code</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .code-container {
+            background-color: #f8f9fa;
+            border: 2px dashed #007bff;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .verification-code {
+            font-size: 32px;
+            font-weight: bold;
+            color: #007bff;
+            letter-spacing: 8px;
+            margin: 10px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            font-size: 14px;
+            color: #6c757d;
+            text-align: center;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🔐 {{ site_name }}</div>
+            <h2>Security Verification Required</h2>
+        </div>
+        
+        <p>Hello <strong>{{ user.first_name|default:user.username }}</strong>,</p>
+        
+        {% if login_attempt %}
+            <p>We detected a login attempt for your account. To ensure it's really you, please enter the verification code below:</p>
+        {% else %}
+            <p>You're trying to perform a sensitive action. Please verify your identity with the code below:</p>
+        {% endif %}
+        
+        <div class="code-container">
+            <p>Your verification code is:</p>
+            <div class="verification-code">{{ code }}</div>
+            <p><small>This code will expire in {{ expiry_minutes }} minutes</small></p>
+        </div>
+        
+        <div class="warning">
+            <strong>⚠️ Security Notice:</strong>
+            <ul>
+                <li>Never share this code with anyone</li>
+                <li>Our team will never ask for this code via phone or email</li>
+                <li>If you didn't request this code, please change your password immediately</li>
+            </ul>
+        </div>
+        
+        <p>If you're having trouble logging in, you can:</p>
+        <ul>
+            <li>Make sure you're entering the code exactly as shown</li>
+            <li>Check that the code hasn't expired</li>
+            <li>Request a new code if needed</li>
+        </ul>
+        
+        <div class="footer">
+            <p>This email was sent from {{ site_name }} security system.</p>
+            <p>If you didn't request this verification, please contact our support team immediately.</p>
+            <p><small>Time: {{ now|date:"F d, Y at g:i A" }}</small></p>
+        </div>
+    </div>
+</body>
+</html>

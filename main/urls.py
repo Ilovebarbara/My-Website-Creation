@@ -12,6 +12,11 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('login/', views.user_login, name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+
+    # Two-Factor Authentication URLs
+    path('auth/verify-2fa/', views.verify_2fa, name='verify_2fa'),
+    path('auth/resend-2fa-code/', views.resend_2fa_code, name='resend_2fa_code'),
+
     path('dashboard/', views.dashboard, name='dashboard'),
     path('post/create/', views.create_post, name='create_post'),
     path('post/edit/<int:pk>/', views.edit_post, name='edit_post'),
@@ -32,4 +37,7 @@ urlpatterns = [
     path('tutorial/create/', views.create_tutorial, name='create_tutorial'),
     path('tutorial/edit/<int:pk>/', views.edit_tutorial, name='edit_tutorial'),
     path('tutorial/delete/<int:pk>/', views.delete_tutorial, name='delete_tutorial'),
+    
+    # Admin URLs
+    path('admin/security/', views.security_dashboard, name='security_dashboard'),
 ]

@@ -1,18 +1,24 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
-from .models import BlogPost, BlogCategory, Project, Tutorial, Comment, Profile, Notification, Like, Share, PostMedia
+from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
+from .models import BlogPost, BlogCategory, Project, Tutorial, Comment, Profile, Notification, Like, Share, PostMedia, TwoFactorAuth, LoginAttempt
 from .forms import (
     CommentForm, PostForm, ProfileUpdateForm, ProjectForm, TutorialForm,
-    PostMediaFormSet
+    PostMediaFormSet, TwoFactorLoginForm, VerificationCodeForm, ResendCodeForm
 )
+from .two_factor_utils import send_verification_code, verify_code, check_suspicious_activity
 
 def home(request):
     categories = BlogCategory.objects.all()
@@ -105,25 +111,124 @@ def user_login(request):
         return redirect('dashboard')
         
     if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
+        form = TwoFactorLoginForm(request, data=request.POST)
         if form.is_valid():
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
             try:
                 user = authenticate(username=username, password=password)
                 if user is not None:
-                    # Ensure profile exists
-                    Profile.objects.get_or_create(user=user)
-                    login(request, user)
-                    messages.success(request, f'Welcome back, {username}!')
-                    return redirect('dashboard')
+                    # Check for suspicious activity
+                    security_check = check_suspicious_activity(user, request)
+                    
+                    # Always require 2FA for additional security
+                    if settings.TWO_FACTOR_ENABLED:
+                        # Store user info in session for 2FA verification
+                        request.session['pending_user_id'] = user.id
+                        request.session['pending_login'] = True
+                          # Send verification code
+                        success, message = send_verification_code(user, request, login_attempt=True)
+                        if success:
+                            messages.success(request, message)
+                            return redirect('verify_2fa')
+                        else:
+                            messages.error(request, message)
+                    else:
+                        # Direct login if 2FA is disabled
+                        Profile.objects.get_or_create(user=user)
+                        login(request, user)
+                        messages.success(request, f'Welcome back, {username}!')
+                        return redirect('dashboard')
+                else:
+                    messages.error(request, 'Invalid username or password.')
             except Exception as e:
                 messages.error(request, 'An error occurred while logging in. Please try again.')
         else:
-            messages.error(request, 'Invalid username or password.')
+            messages.error(request, 'Please check your username and password.')
     else:
-        form = AuthenticationForm()
+        form = TwoFactorLoginForm()
     return render(request, 'login.html', {'form': form})
+
+def verify_2fa(request):
+    """Handle 2FA verification"""
+    if not request.session.get('pending_login'):
+        messages.error(request, 'No pending login found. Please log in again.')
+        return redirect('login')
+    
+    pending_user_id = request.session.get('pending_user_id')
+    if not pending_user_id:
+        messages.error(request, 'Session expired. Please log in again.')
+        return redirect('login')
+    
+    try:
+        user = User.objects.get(id=pending_user_id)
+    except User.DoesNotExist:
+        messages.error(request, 'User not found. Please log in again.')
+        return redirect('login')
+    
+    if request.method == 'POST':
+        form = VerificationCodeForm(request.POST)
+        if form.is_valid():
+            code = form.cleaned_data.get('verification_code')
+            success, message = verify_code(user, code, login_attempt=True)
+            
+            if success:
+                # Clear session data
+                del request.session['pending_login']
+                del request.session['pending_user_id']
+                
+                # Complete login
+                Profile.objects.get_or_create(user=user)
+                login(request, user)
+                
+                # Log successful login
+                LoginAttempt.objects.create(
+                    user=user,
+                    ip_address=request.META.get('REMOTE_ADDR', ''),
+                    user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                    success=True
+                )
+                
+                messages.success(request, f'Welcome back, {user.username}!')
+                return redirect('dashboard')
+            else:
+                messages.error(request, message)
+        else:
+            messages.error(request, 'Please enter a valid 6-digit code.')
+    else:
+        form = VerificationCodeForm()
+    
+    return render(request, 'auth/verify_2fa.html', {
+        'form': form,
+        'user': user,
+        'masked_email': f"{user.email[:2]}***@{user.email.split('@')[1]}"
+    })
+
+@require_POST
+def resend_2fa_code(request):
+    """Resend 2FA verification code"""
+    if not request.session.get('pending_login'):
+        return JsonResponse({'success': False, 'message': 'No pending login found.'})
+    
+    pending_user_id = request.session.get('pending_user_id')
+    if not pending_user_id:
+        return JsonResponse({'success': False, 'message': 'Session expired.'})
+    
+    try:
+        user = User.objects.get(id=pending_user_id)
+        success, message = send_verification_code(user, request, login_attempt=True)
+        if success:
+            return JsonResponse({
+                'success': True, 
+                'message': message
+            })
+        else:
+            return JsonResponse({
+                'success': False, 
+                'message': message
+            })
+    except User.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'User not found.'})
 
 def user_logout(request):
     logout(request)
@@ -427,3 +532,47 @@ def delete_tutorial(request, pk):
     except Exception as e:
         messages.error(request, f'Error deleting tutorial: {str(e)}')
         return redirect('dashboard')
+
+@staff_member_required
+def security_dashboard(request):
+    """Security dashboard for admin"""
+    # Get login attempts in the last 24 hours
+    time_threshold = timezone.now() - timedelta(days=1)
+    recent_logins = LoginAttempt.objects.filter(created_at__gte=time_threshold).order_by('-created_at')
+    
+    # Get 2FA statistics
+    total_2fa_codes = TwoFactorAuth.objects.filter(created_at__gte=time_threshold).count()
+    verified_2fa_codes = TwoFactorAuth.objects.filter(
+        created_at__gte=time_threshold,
+        used=True
+    ).count()
+    
+    # Get users with suspicious activity (multiple failed attempts)
+    suspicious_users = []
+    ip_failure_counts = {}
+    
+    # Count failed attempts by IP
+    for attempt in recent_logins.filter(success=False):
+        ip = attempt.ip_address
+        if ip in ip_failure_counts:
+            ip_failure_counts[ip] += 1
+        else:
+            ip_failure_counts[ip] = 1
+    
+    # Find users with high failure rates
+    for attempt in recent_logins.filter(success=False):
+        if ip_failure_counts.get(attempt.ip_address, 0) >= 3:  # 3 or more failures
+            if attempt.user and attempt.user not in suspicious_users:
+                suspicious_users.append(attempt.user)
+    
+    context = {
+        'recent_logins': recent_logins,
+        'suspicious_users': suspicious_users,
+        'total_2fa_codes': total_2fa_codes,
+        'verified_2fa_codes': verified_2fa_codes,
+        'success_rate': (verified_2fa_codes / total_2fa_codes * 100) if total_2fa_codes > 0 else 0,
+        'failed_attempts_count': recent_logins.filter(success=False).count(),
+        'successful_attempts_count': recent_logins.filter(success=True).count(),
+    }
+    
+    return render(request, 'admin/security_dashboard.html', context)

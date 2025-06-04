@@ -1,6 +1,7 @@
 from django import forms
 from django.utils.text import slugify
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import AuthenticationForm
 from .models import BlogPost, Comment, Profile, Project, Tutorial, PostMedia
 
 class CommentForm(forms.ModelForm):
@@ -175,3 +176,44 @@ class TutorialForm(forms.ModelForm):
                 'class': 'form-check-input'
             })
         }
+
+class TwoFactorLoginForm(AuthenticationForm):
+    """Enhanced login form that supports 2FA"""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Username or Email'
+        })
+        self.fields['password'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Password'
+        })
+
+class VerificationCodeForm(forms.Form):
+    """Form for entering 2FA verification code"""
+    verification_code = forms.CharField(
+        max_length=6,
+        min_length=6,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control text-center',
+            'placeholder': '000000',
+            'style': 'font-size: 24px; letter-spacing: 8px; font-weight: bold;',
+            'maxlength': '6',
+            'pattern': '[0-9]{6}',
+            'autocomplete': 'one-time-code',
+            'inputmode': 'numeric'
+        }),
+        help_text='Enter the 6-digit code sent to your email'
+    )
+    
+    def clean_verification_code(self):
+        code = self.cleaned_data.get('verification_code')
+        if code and not code.isdigit():
+            raise forms.ValidationError('Verification code must contain only numbers.')
+        return code
+
+class ResendCodeForm(forms.Form):
+    """Form for resending verification code"""
+    pass

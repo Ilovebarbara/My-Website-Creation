@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .security-card {
+        background-color: #1e1e1e;
+        border: 1px solid #333;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    .security-card:hover {
+        border-color: #0d6efd;
+        box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
+    }
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #0d6efd;
+    }
+    .suspicious-item {
+        background-color: #2d1b1b;
+        border-left: 4px solid #dc3545;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+    }
+    .success-item {
+        background-color: #1b2d1b;
+        border-left: 4px solid #28a745;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+    }
+    .chart-container {
+        height: 300px;
+        background-color: #2d2d2d;
+        border-radius: 8px;
+        padding: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="text-white">
+                    <i class="bi bi-shield-check me-2"></i>
+                    Security Dashboard
+                </h1>
+                <div class="badge bg-success fs-6">
+                    <i class="bi bi-clock me-1"></i>
+                    Real-time monitoring
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card security-card">
+                <div class="card-body text-center">
+                    <div class="stat-number">{{ recent_logins.count }}</div>
+                    <p class="text-muted mb-0">Login Attempts (24h)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card security-card">
+                <div class="card-body text-center">
+                    <div class="stat-number text-success">
+                        {{ recent_logins|default:0|length|add:"-"|add:recent_logins.filter|add:success=False|length }}
+                    </div>
+                    <p class="text-muted mb-0">Successful Logins</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card security-card">
+                <div class="card-body text-center">
+                    <div class="stat-number text-danger">
+                        {{ recent_logins|default:0|length|add:"-"|add:recent_logins.filter|add:success=True|length }}
+                    </div>
+                    <p class="text-muted mb-0">Failed Attempts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card security-card">
+                <div class="card-body text-center">
+                    <div class="stat-number text-warning">{{ suspicious_users|length }}</div>
+                    <p class="text-muted mb-0">Suspicious Users</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Login Attempts -->
+        <div class="col-lg-8">
+            <div class="card security-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">
+                        <i class="bi bi-activity me-2"></i>
+                        Recent Login Attempts
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>User</th>
+                                    <th>IP Address</th>
+                                    <th>Status</th>
+                                    <th>2FA Email</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for attempt in recent_logins|slice:":20" %}
+                                <tr class="{% if not attempt.success %}table-danger{% endif %}">
+                                    <td>{{ attempt.created_at|timesince }} ago</td>
+                                    <td>
+                                        {% if attempt.user %}
+                                            {{ attempt.user.username }}
+                                        {% else %}
+                                            <span class="text-muted">Unknown</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <code>{{ attempt.ip_address|default:"Unknown" }}</code>
+                                    </td>
+                                    <td>
+                                        {% if attempt.success %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle me-1"></i>Success
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-danger">
+                                                <i class="bi bi-x-circle me-1"></i>Failed
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if attempt.email_sent %}
+                                            <span class="badge bg-info">
+                                                <i class="bi bi-envelope-check me-1"></i>Sent
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="bi bi-envelope-x me-1"></i>Not Sent
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">
+                                        No recent login attempts found.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Alerts -->
+        <div class="col-lg-4">
+            <div class="card security-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Security Alerts
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if suspicious_users %}
+                        <h6 class="text-warning mb-3">Suspicious Users:</h6>
+                        {% for user in suspicious_users|slice:":10" %}
+                        <div class="suspicious-item">
+                            <strong>{{ user.username }}</strong>
+                            <br>
+                            <small class="text-muted">
+                                Multiple failed login attempts detected
+                            </small>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="success-item">
+                            <i class="bi bi-shield-check me-2"></i>
+                            <strong>All Clear</strong>
+                            <br>
+                            <small class="text-muted">
+                                No suspicious activity detected
+                            </small>
+                        </div>
+                    {% endif %}
+
+                    <hr class="my-3">
+
+                    <h6 class="text-info mb-3">2FA Statistics:</h6>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Total Codes Sent:</span>
+                        <span class="badge bg-primary">{{ total_2fa_codes|default:0 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Codes Verified:</span>
+                        <span class="badge bg-success">{{ verified_2fa_codes|default:0 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Success Rate:</span>
+                        <span class="badge bg-info">
+                            {% if total_2fa_codes and total_2fa_codes > 0 %}
+                                {{ verified_2fa_codes|default:0|floatformat:0|add:0 }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card security-card mt-3">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">
+                        <i class="bi bi-tools me-2"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-info" onclick="refreshDashboard()">
+                            <i class="bi bi-arrow-clockwise me-2"></i>
+                            Refresh Data
+                        </button>
+                        <button class="btn btn-outline-warning" onclick="exportLogs()">
+                            <i class="bi bi-download me-2"></i>
+                            Export Logs
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="clearOldLogs()">
+                            <i class="bi bi-trash me-2"></i>
+                            Clear Old Logs
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function refreshDashboard() {
+    location.reload();
+}
+
+function exportLogs() {
+    // Implement log export functionality
+    alert('Log export functionality would be implemented here');
+}
+
+function clearOldLogs() {
+    if (confirm('Are you sure you want to clear logs older than 30 days?')) {
+        // Implement log clearing functionality
+        alert('Old logs clearing functionality would be implemented here');
+    }
+}
+
+// Auto-refresh every 30 seconds
+setInterval(function() {
+    // Only refresh if user is actively viewing the page
+    if (!document.hidden) {
+        location.reload();
+    }
+}, 30000);
+</script>
+{% endblock %}

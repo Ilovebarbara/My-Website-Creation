@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<style>
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+    .verification-card {
+        background-color: #1e1e1e;
+        border: 1px solid #333;
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        max-width: 500px;
+    }
+    .form-control {
+        background-color: #2d2d2d;
+        border: 1px solid #404040;
+        color: #e0e0e0;
+        text-align: center;
+        font-size: 24px;
+        letter-spacing: 8px;
+        font-weight: bold;
+    }
+    .form-control:focus {
+        background-color: #333;
+        border-color: #0d6efd;
+        color: #ffffff;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    .verify-btn {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        border: none;
+        transition: all 0.3s ease;
+    }
+    .verify-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+    }
+    .resend-btn {
+        background: transparent;
+        border: 1px solid #6c757d;
+        color: #6c757d;
+        transition: all 0.3s ease;
+    }
+    .resend-btn:hover {
+        background-color: #6c757d;
+        color: #fff;
+    }
+    .security-icon {
+        font-size: 3rem;
+        color: #28a745;
+        margin-bottom: 1rem;
+    }
+    .countdown {
+        font-size: 1.2rem;
+        color: #ffc107;
+        font-weight: bold;
+    }
+    .email-display {
+        background-color: #2d2d2d;
+        border-radius: 8px;
+        padding: 12px 16px;
+        border: 1px dashed #28a745;
+        color: #28a745;
+        font-family: monospace;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card verification-card mx-auto">
+                <div class="card-body p-5 text-center">
+                    <div class="security-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    
+                    <h1 class="mb-3 fw-bold">Two-Factor Authentication</h1>
+                    <p class="text-muted mb-4">
+                        We've sent a verification code to your email address for added security.
+                    </p>
+                    
+                    <div class="email-display mb-4">
+                        <i class="bi bi-envelope-fill me-2"></i>
+                        {{ masked_email }}
+                    </div>
+                    
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post" id="verificationForm">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="{{ form.verification_code.id_for_label }}" class="form-label">
+                                Enter 6-Digit Code
+                            </label>
+                            {{ form.verification_code }}
+                            <div class="form-text text-muted">
+                                {{ form.verification_code.help_text }}
+                            </div>
+                            {% if form.verification_code.errors %}
+                                <div class="text-danger mt-2">
+                                    {{ form.verification_code.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn btn-success btn-lg verify-btn">
+                                <i class="bi bi-check-circle me-2"></i>
+                                Verify Code
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center">
+                        <p class="text-muted mb-2">Didn't receive the code?</p>
+                        <button type="button" class="btn resend-btn" id="resendBtn">
+                            <i class="bi bi-arrow-clockwise me-2"></i>
+                            Resend Code
+                        </button>
+                        <div id="countdown" class="countdown mt-2" style="display: none;"></div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Code expires in 10 minutes. Having trouble? 
+                            <a href="{% url 'login' %}" class="text-decoration-none">Try logging in again</a>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('verificationForm');
+    const codeInput = document.getElementById('{{ form.verification_code.id_for_label }}');
+    const resendBtn = document.getElementById('resendBtn');
+    const countdown = document.getElementById('countdown');
+    
+    let resendCooldown = 60; // 60 seconds cooldown
+    let cooldownTimer;
+    
+    // Auto-focus on code input
+    codeInput.focus();
+    
+    // Auto-submit when 6 digits are entered
+    codeInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, ''); // Only digits
+        e.target.value = value;
+        
+        if (value.length === 6) {
+            form.submit();
+        }
+    });
+    
+    // Handle form submission
+    form.addEventListener('submit', function() {
+        const button = this.querySelector('button[type="submit"]');
+        button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
+        button.disabled = true;
+    });
+      // Handle resend code
+    resendBtn.addEventListener('click', function() {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        fetch('{% url "resend_2fa_code" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                'csrfmiddlewaretoken': csrfToken
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show';
+                alert.innerHTML = `
+                    ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                form.insertBefore(alert, form.firstChild);
+                
+                // Start cooldown
+                startCooldown();
+            } else {
+                // Show error message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger alert-dismissible fade show';
+                alert.innerHTML = `
+                    ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                form.insertBefore(alert, form.firstChild);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger alert-dismissible fade show';
+            alert.innerHTML = `
+                Failed to resend code. Please try again.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            form.insertBefore(alert, form.firstChild);
+        });
+    });
+    
+    function startCooldown() {
+        resendBtn.disabled = true;
+        countdown.style.display = 'block';
+        countdown.textContent = `Resend available in ${resendCooldown} seconds`;
+        
+        cooldownTimer = setInterval(function() {
+            resendCooldown--;
+            countdown.textContent = `Resend available in ${resendCooldown} seconds`;
+            
+            if (resendCooldown <= 0) {
+                clearInterval(cooldownTimer);
+                resendBtn.disabled = false;
+                countdown.style.display = 'none';
+                resendCooldown = 60; // Reset for next time
+            }
+        }, 1000);
+    }
+    
+    // Start initial cooldown
+    startCooldown();
+});
+</script>
+{% endblock %}

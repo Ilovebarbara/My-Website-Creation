@@ -1,0 +1,31 @@
+Security Verification Required - {{ site_name }}
+
+Hello {{ user.first_name|default:user.username }},
+
+{% if login_attempt %}
+We detected a login attempt for your account. To ensure it's really you, please enter the verification code below:
+{% else %}
+You're trying to perform a sensitive action. Please verify your identity with the code below:
+{% endif %}
+
+Your verification code is: {{ code }}
+
+This code will expire in {{ expiry_minutes }} minutes.
+
+SECURITY NOTICE:
+- Never share this code with anyone
+- Our team will never ask for this code via phone or email
+- If you didn't request this code, please change your password immediately
+
+If you're having trouble:
+- Make sure you're entering the code exactly as shown
+- Check that the code hasn't expired
+- Request a new code if needed
+
+This email was sent from {{ site_name }} security system.
+If you didn't request this verification, please contact our support team immediately.
+
+Time: {{ now|date:"F d, Y at g:i A" }}
+
+---
+{{ site_name }} Security Team

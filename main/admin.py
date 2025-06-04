@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import BlogCategory, BlogPost, Project, Tutorial, Comment, Profile, Like, Share, Notification
+from .models import BlogCategory, BlogPost, Project, Tutorial, Comment, Profile, Like, Share, Notification, TwoFactorAuth, LoginAttempt
 
 @admin.register(BlogCategory)
 class BlogCategoryAdmin(admin.ModelAdmin):
@@ -51,3 +51,31 @@ class NotificationAdmin(admin.ModelAdmin):
     list_display = ('recipient', 'sender', 'notification_type', 'created_at', 'is_read')
     list_filter = ('notification_type', 'is_read', 'created_at')
     search_fields = ('recipient__username', 'sender__username')
+
+@admin.register(TwoFactorAuth)
+class TwoFactorAuthAdmin(admin.ModelAdmin):
+    list_display = ('user', 'code', 'created_at', 'expires_at', 'used', 'login_attempt')
+    list_filter = ('used', 'login_attempt', 'created_at')
+    search_fields = ('user__username', 'user__email', 'code')
+    readonly_fields = ('code', 'created_at', 'expires_at')
+    ordering = ('-created_at',)
+    
+    def has_add_permission(self, request):
+        return False  # Prevent manual creation
+    
+    def has_change_permission(self, request, obj=None):
+        return False  # Prevent manual editing
+
+@admin.register(LoginAttempt)
+class LoginAttemptAdmin(admin.ModelAdmin):
+    list_display = ('user', 'ip_address', 'success', 'timestamp', 'email_sent')
+    list_filter = ('success', 'email_sent', 'timestamp')
+    search_fields = ('user__username', 'ip_address', 'user_agent')
+    readonly_fields = ('user', 'ip_address', 'user_agent', 'success', 'timestamp', 'email_sent')
+    ordering = ('-timestamp',)
+    
+    def has_add_permission(self, request):
+        return False  # Prevent manual creation
+    
+    def has_change_permission(self, request, obj=None):
+        return False  # Prevent manual editing

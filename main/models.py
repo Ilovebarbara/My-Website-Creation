@@ -3,6 +3,10 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.urls import reverse
+from django.utils import timezone
+from datetime import timedelta
+import random
+import string
 
 # Create your models here.
 
@@ -173,6 +177,50 @@ class PostMedia(models.Model):
     
     def __str__(self):
         return f"{self.media_type} for {self.post.title}"
+
+class TwoFactorAuth(models.Model):
+    """Model to store two-factor authentication codes"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used = models.BooleanField(default=False)
+    login_attempt = models.BooleanField(default=True)  # True for login, False for sensitive actions
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(minutes=10)
+        super().save(*args, **kwargs)
+    
+    def is_valid(self):
+        """Check if the code is still valid (not expired and not used)"""
+        return not self.used and timezone.now() < self.expires_at
+    
+    def __str__(self):
+        return f"2FA Code for {self.user.username} - {self.code}"
+    
+    @staticmethod
+    def generate_code():
+        """Generate a random 6-digit verification code"""
+        return ''.join(random.choices(string.digits, k=6))
+
+class LoginAttempt(models.Model):
+    """Model to track login attempts for security"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    ip_address = models.GenericIPAddressField()
+    user_agent = models.TextField()
+    success = models.BooleanField(default=False)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    email_sent = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-timestamp']
+    
+    def __str__(self):
+        return f"Login attempt for {self.user.username if self.user else 'Unknown'} at {self.timestamp}"
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
