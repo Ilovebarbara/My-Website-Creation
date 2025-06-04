@@ -176,14 +176,5 @@ class PostMedia(models.Model):
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    """Create a Profile instance for all newly created User instances."""
-    if created:
-        Profile.objects.create(user=instance)
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    """Save the Profile instance whenever the User instance is saved."""
-    try:
-        instance.profile.save()
-    except Profile.DoesNotExist:
-        Profile.objects.create(user=instance)
+    """Create or update Profile instance for the User."""
+    Profile.objects.get_or_create(user=instance)

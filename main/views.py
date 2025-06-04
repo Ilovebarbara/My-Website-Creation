@@ -84,9 +84,15 @@ def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()  # Profile will be created by the signal
-            login(request, user)
-            return redirect('home')
+            try:
+                user = form.save()
+                # Profile will be created by the signal handler
+                login(request, user)
+                messages.success(request, 'Registration successful!')
+                return redirect('home')
+            except Exception as e:
+                messages.error(request, str(e) or 'An error occurred during registration. Please try again.')
+                return render(request, 'register.html', {'form': form})
         else:
             for error in form.errors.values():
                 messages.error(request, error)
@@ -103,11 +109,16 @@ def user_login(request):
         if form.is_valid():
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                messages.success(request, f'Welcome back, {username}!')
-                return redirect('dashboard')
+            try:
+                user = authenticate(username=username, password=password)
+                if user is not None:
+                    # Ensure profile exists
+                    Profile.objects.get_or_create(user=user)
+                    login(request, user)
+                    messages.success(request, f'Welcome back, {username}!')
+                    return redirect('dashboard')
+            except Exception as e:
+                messages.error(request, 'An error occurred while logging in. Please try again.')
         else:
             messages.error(request, 'Invalid username or password.')
     else:
@@ -121,6 +132,9 @@ def user_logout(request):
 
 @login_required
 def dashboard(request):
+    # Ensure user has a profile
+    Profile.objects.get_or_create(user=request.user)
+    
     # Get user's content
     user_posts = BlogPost.objects.filter(author=request.user).order_by('-created_at')
     user_projects = Project.objects.filter(author=request.user).order_by('-created_at')
