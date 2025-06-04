@@ -8,8 +8,11 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
-from .models import BlogPost, BlogCategory, Project, Tutorial, Comment, Profile, Notification, Like, Share
-from .forms import CommentForm, PostForm, ProfileUpdateForm, ProjectForm, TutorialForm
+from .models import BlogPost, BlogCategory, Project, Tutorial, Comment, Profile, Notification, Like, Share, PostMedia
+from .forms import (
+    CommentForm, PostForm, ProfileUpdateForm, ProjectForm, TutorialForm,
+    PostMediaFormSet
+)
 
 def home(request):
     categories = BlogCategory.objects.all()
@@ -154,18 +157,27 @@ def dashboard(request):
 def create_post(request):
     if request.method == 'POST':
         form = PostForm(request.POST)
-        if form.is_valid():
+        media_formset = PostMediaFormSet(request.POST, request.FILES)
+        if form.is_valid() and media_formset.is_valid():
             post = form.save(commit=False)
             post.author = request.user
             post.save()
+            form.save_m2m()  # Save tagged users
+            
+            # Handle media uploads
+            media_formset.instance = post
+            media_formset.save()
+            
             messages.success(request, 'Post created successfully!')
             return redirect('dashboard')
     else:
         form = PostForm()
-    categories = BlogCategory.objects.all()
+        media_formset = PostMediaFormSet()
+    
     return render(request, 'create_post.html', {
         'form': form,
-        'categories': categories,
+        'media_formset': media_formset,
+        'categories': BlogCategory.objects.all(),
     })
 
 @login_required
@@ -387,7 +399,8 @@ def edit_tutorial(request, pk):
 def delete_project(request, pk):
     project = get_object_or_404(Project, pk=pk, author=request.user)
     project.delete()
-    return JsonResponse({'status': 'success'})
+    messages.success(request, 'Project deleted successfully!')
+    return redirect('dashboard')
 
 @login_required
 @require_POST
@@ -395,6 +408,8 @@ def delete_tutorial(request, pk):
     try:
         tutorial = get_object_or_404(Tutorial, pk=pk, author=request.user)
         tutorial.delete()
-        return JsonResponse({'status': 'success'})
+        messages.success(request, 'Tutorial deleted successfully!')
+        return redirect('dashboard')
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        messages.error(request, f'Error deleting tutorial: {str(e)}')
+        return redirect('dashboard')

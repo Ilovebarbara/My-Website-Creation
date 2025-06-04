@@ -8,7 +8,7 @@
                     <h2 class="card-title text-center mb-4">
                         {% if editing %}Edit Post{% else %}Create New Post{% endif %}
                     </h2>
-                    <form method="post" class="needs-validation" novalidate>
+                    <form method="post" class="needs-validation" novalidate enctype="multipart/form-data">
                         {% csrf_token %}
                         <div class="mb-3">
                             <label for="{{ form.title.id_for_label }}" class="form-label">Title</label>
@@ -19,15 +19,73 @@
                             </div>
                             {% endif %}
                         </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
+                                {{ form.category }}
+                                {% if form.category.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.category.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.privacy.id_for_label }}" class="form-label">Privacy</label>
+                                {{ form.privacy }}
+                                {% if form.privacy.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.privacy.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.feeling.id_for_label }}" class="form-label">How are you feeling?</label>
+                                {{ form.feeling }}
+                                {% if form.feeling.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.feeling.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.activity.id_for_label }}" class="form-label">What are you doing?</label>
+                                {{ form.activity }}
+                                {% if form.activity.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.activity.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
                         <div class="mb-3">
-                            <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
-                            {{ form.category }}
-                            {% if form.category.errors %}
+                            <label for="{{ form.location.id_for_label }}" class="form-label">
+                                <i class="bi bi-geo-alt"></i> Add Location
+                            </label>
+                            {{ form.location }}
+                            {% if form.location.errors %}
                             <div class="invalid-feedback d-block">
-                                {{ form.category.errors.0 }}
+                                {{ form.location.errors.0 }}
                             </div>
                             {% endif %}
                         </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.tagged_users.id_for_label }}" class="form-label">
+                                <i class="bi bi-people"></i> Tag People
+                            </label>
+                            {{ form.tagged_users }}
+                            {% if form.tagged_users.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.tagged_users.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+
                         <div class="mb-3">
                             <label for="{{ form.content.id_for_label }}" class="form-label">Content</label>
                             {{ form.content }}
@@ -36,6 +94,24 @@
                                 {{ form.content.errors.0 }}
                             </div>
                             {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-images"></i> Add Photos/Videos
+                            </label>
+                            {{ media_formset.management_form }}
+                            <div id="media-formset">
+                                {% for media_form in media_formset %}
+                                <div class="media-form mb-2">
+                                    {{ media_form }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div id="media-preview" class="row g-2 mb-3"></div>
+                            <button type="button" class="btn btn-outline-success btn-sm" id="add-media">
+                                <i class="bi bi-plus"></i> Add More Media
+                            </button>
                         </div>
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">

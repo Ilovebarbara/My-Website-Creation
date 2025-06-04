@@ -27,7 +27,7 @@ urlpatterns = [
     # Project URLs
     path('project/create/', views.create_project, name='create_project'),
     path('project/edit/<int:pk>/', views.edit_project, name='edit_project'),
-    path('project/delete/<int:pk>/', views.delete_project, name='project_delete'),
+    path('project/delete/<int:pk>/', views.delete_project, name='delete_project'),  # Changed from project_delete
     # Tutorial URLs
     path('tutorial/create/', views.create_tutorial, name='create_tutorial'),
     path('tutorial/edit/<int:pk>/', views.edit_tutorial, name='edit_tutorial'),

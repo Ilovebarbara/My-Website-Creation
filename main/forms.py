@@ -1,6 +1,7 @@
 from django import forms
 from django.utils.text import slugify
-from .models import BlogPost, Comment, Profile, Project, Tutorial
+from django.contrib.auth.models import User
+from .models import BlogPost, Comment, Profile, Project, Tutorial, PostMedia
 
 class CommentForm(forms.ModelForm):
     class Meta:
@@ -10,10 +11,65 @@ class CommentForm(forms.ModelForm):
             'content': forms.Textarea(attrs={'rows': 3}),
         }
 
+class PostMediaFormSet(forms.models.BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        total_size = 0
+        for form in self.forms:
+            if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                file = form.cleaned_data.get('file', None)
+                if file:
+                    total_size += file.size
+                    # 10MB limit per file
+                    if file.size > 10 * 1024 * 1024:
+                        raise forms.ValidationError("Each file must be less than 10MB")
+        # 50MB total limit
+        if total_size > 50 * 1024 * 1024:
+            raise forms.ValidationError("Total upload size cannot exceed 50MB")
+
+class PostMediaForm(forms.ModelForm):
+    class Meta:
+        model = PostMedia
+        fields = ['file']
+        widgets = {
+            'file': forms.ClearableFileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*,video/*'
+            })
+        }
+
+    def clean_file(self):
+        file = self.cleaned_data.get('file')
+        if file:
+            if file.size > 10 * 1024 * 1024:  # 10MB
+                raise forms.ValidationError("File size must be less than 10MB")
+            if not file.content_type.startswith(('image/', 'video/')):
+                raise forms.ValidationError("Only image and video files are allowed")
+        return file
+
+PostMediaFormSet = forms.inlineformset_factory(
+    BlogPost, 
+    PostMedia, 
+    form=PostMediaForm,
+    formset=PostMediaFormSet,
+    extra=1,
+    max_num=10,
+    can_delete=True
+)
+
 class PostForm(forms.ModelForm):
+    tagged_users = forms.ModelMultipleChoiceField(
+        queryset=User.objects.all(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={
+            'class': 'form-select',
+            'data-placeholder': 'Tag people in your post...'
+        })
+    )
+    
     class Meta:
         model = BlogPost
-        fields = ['title', 'content', 'category']
+        fields = ['title', 'content', 'category', 'privacy', 'location', 'feeling', 'activity', 'tagged_users']
         widgets = {
             'content': forms.Textarea(attrs={
                 'rows': 5,
@@ -27,6 +83,21 @@ class PostForm(forms.ModelForm):
             'category': forms.Select(attrs={
                 'class': 'form-select',
                 'placeholder': 'Select a category'
+            }),
+            'privacy': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'location': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Add location...',
+                'id': 'location-input'
+            }),
+            'feeling': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'activity': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'What are you doing?'
             })
         }
 

@@ -14,6 +14,20 @@ class BlogCategory(models.Model):
         return self.name
 
 class BlogPost(models.Model):
+    PRIVACY_CHOICES = [
+        ('public', 'Public'),
+        ('friends', 'Friends'),
+        ('private', 'Private')
+    ]
+    FEELING_CHOICES = [
+        ('happy', 'Happy'),
+        ('sad', 'Sad'),
+        ('excited', 'Excited'),
+        ('tired', 'Tired'),
+        ('loved', 'Loved'),
+        ('angry', 'Angry')
+    ]
+    
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -24,6 +38,13 @@ class BlogPost(models.Model):
     featured = models.BooleanField(default=False)
     likes = models.ManyToManyField(User, related_name='liked_posts', blank=True)
     shares = models.ManyToManyField(User, related_name='shared_posts', blank=True)
+    
+    # New fields
+    privacy = models.CharField(max_length=10, choices=PRIVACY_CHOICES, default='public')
+    location = models.CharField(max_length=100, blank=True)
+    feeling = models.CharField(max_length=10, choices=FEELING_CHOICES, blank=True)
+    activity = models.CharField(max_length=100, blank=True)
+    tagged_users = models.ManyToManyField(User, related_name='tagged_posts', blank=True)
 
     def __str__(self):
         return self.title
@@ -135,6 +156,23 @@ class NewsletterSubscriber(models.Model):
 
     def __str__(self):
         return self.email
+
+class PostMedia(models.Model):
+    MEDIA_TYPE_CHOICES = [
+        ('image', 'Image'),
+        ('video', 'Video')
+    ]
+    
+    post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='media')
+    file = models.FileField(upload_to='post_media/')
+    media_type = models.CharField(max_length=5, choices=MEDIA_TYPE_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['created_at']
+    
+    def __str__(self):
+        return f"{self.media_type} for {self.post.title}"
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):

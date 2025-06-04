@@ -1,11 +1,98 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-5">
-    <h1>{{ post.title }}</h1>
-    <p class="mb-1">By {{ post.author }} | {{ post.created_at|date:'M d, Y' }} | {{ post.category }}</p>
-    <div class="mb-4">{{ post.content|linebreaks }}</div>
-    <h4>Comments</h4>
-    {% for comment in comments %}
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <!-- Post Header -->
+            <div class="d-flex align-items-center mb-3">
+                <div class="user-avatar me-3">
+                    {% if post.author.profile.avatar %}
+                        <img src="{{ post.author.profile.avatar.url }}" alt="User Avatar" class="img-fluid rounded-circle" style="width: 50px; height: 50px;">
+                    {% else %}
+                        <div class="avatar-placeholder" style="width: 50px; height: 50px;">
+                            {{ post.author.username.0|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <h5 class="mb-0">{{ post.author.username }}</h5>
+                    <div class="text-muted small">
+                        {{ post.created_at|date:'M d, Y g:i A' }} • 
+                        <i class="bi bi-globe"></i> {{ post.privacy }}
+                        {% if post.location %}
+                        • <i class="bi bi-geo-alt"></i> {{ post.location }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Post Title -->
+            <h1 class="h3">{{ post.title }}</h1>
+
+            <!-- Feeling/Activity -->
+            {% if post.feeling or post.activity %}
+            <p class="text-muted mb-3">
+                {% if post.feeling %}
+                is feeling {{ post.feeling }}
+                {% endif %}
+                {% if post.activity %}
+                {% if post.feeling %} and {% endif %}
+                {{ post.activity }}
+                {% endif %}
+            </p>
+            {% endif %}
+
+            <!-- Tagged Users -->
+            {% if post.tagged_users.exists %}
+            <p class="text-muted small mb-3">
+                <i class="bi bi-people"></i> With 
+                {% for user in post.tagged_users.all %}
+                    <a href="{% url 'profile' username=user.username %}">{{ user.username }}</a>{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+            {% endif %}
+
+            <!-- Post Content -->
+            <div class="mb-4">{{ post.content|linebreaks }}</div>
+
+            <!-- Media Gallery -->
+            {% if post.media.exists %}
+            <div class="row g-2 mb-4">
+                {% for media in post.media.all %}
+                <div class="col-md-4">
+                    {% if 'image' in media.file.url %}
+                        <img src="{{ media.file.url }}" class="img-fluid rounded" alt="Post media">
+                    {% else %}
+                        <video class="img-fluid rounded" controls>
+                            <source src="{{ media.file.url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Post Actions -->
+            <div class="border-top border-bottom py-2 mb-4">
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-link text-decoration-none like-btn" data-post-id="{{ post.id }}">
+                        <i class="bi {% if user in post.likes.all %}bi-heart-fill text-danger{% else %}bi-heart{% endif %}"></i>
+                        <span class="likes-count">{{ post.likes.count }}</span> Likes
+                    </button>
+                    <button class="btn btn-link text-decoration-none" data-bs-toggle="collapse" data-bs-target="#commentsSection">
+                        <i class="bi bi-chat"></i> {{ comments.count }} Comments
+                    </button>
+                    <button class="btn btn-link text-decoration-none share-btn">
+                        <i class="bi bi-share"></i> Share
+                    </button>
+                </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div id="commentsSection" class="collapse show">
+                <h4>Comments</h4>
+                {% for comment in comments %}
     <div class="mb-2 p-2 border rounded">
         <strong>{{ comment.author }}</strong> <span class="text-muted">{{ comment.created_at|date:'M d, Y H:i' }}</span>
         <div>{{ comment.content|linebreaks }}</div>
